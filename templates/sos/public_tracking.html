@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bomoko - Suivi SOS</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --brand: #1877f2;
+      --danger: #dc2626;
+      --ok: #16a34a;
+    }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: 900;
+      margin: 0 0 8px;
+    }
+    .status {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .status.ok {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .kv {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .map {
+      width: 100%;
+      height: 420px;
+      border: 0;
+      border-radius: 12px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      text-decoration: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 800;
+      font-size: 13px;
+      border: 1px solid transparent;
+      display: inline-block;
+    }
+    .btn.primary {
+      background: var(--brand);
+      color: #fff;
+    }
+    .btn.secondary {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 class="title">Suivi SOS Bomoko</h1>
+      <div id="statusPill" class="status">Chargement...</div>
+      <div class="grid" style="margin-top: 10px;">
+        <div class="kv"><strong>Alert ID:</strong> <span id="alertId"></span></div>
+        <div class="kv"><strong>Derniere position:</strong> <span id="coords">N/A</span></div>
+        <div class="kv"><strong>Maj:</strong> <span id="updatedAt">N/A</span></div>
+        <div class="kv"><strong>Expire le:</strong> <span id="expiresAt">N/A</span></div>
+      </div>
+      <div class="actions">
+        <a id="googleMapsBtn" class="btn primary" href="#" target="_blank" rel="noreferrer">Ouvrir dans Google Maps</a>
+        <button id="refreshBtn" class="btn secondary">Actualiser maintenant</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <iframe id="mapFrame" class="map" title="Carte suivi SOS"></iframe>
+    </div>
+  </div>
+
+  <script>
+    const ALERT_ID = "{{ alert_id }}";
+    const TOKEN = "{{ token }}";
+    const apiUrl = `/api/sos/track/${ALERT_ID}/${TOKEN}/`;
+
+    const elStatus = document.getElementById('statusPill');
+    const elAlertId = document.getElementById('alertId');
+    const elCoords = document.getElementById('coords');
+    const elUpdatedAt = document.getElementById('updatedAt');
+    const elExpiresAt = document.getElementById('expiresAt');
+    const mapFrame = document.getElementById('mapFrame');
+    const googleMapsBtn = document.getElementById('googleMapsBtn');
+
+    elAlertId.textContent = ALERT_ID;
+
+    function buildMapUrl(lat, lng) {
+      return `https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
+    }
+    function buildGoogleUrl(lat, lng) {
+      return `https://maps.google.com/?q=${lat},${lng}`;
+    }
+    function toLocalDate(raw) {
+      if (!raw) return 'N/A';
+      try { return new Date(raw).toLocaleString(); } catch { return raw; }
+    }
+
+    async function refreshTracking() {
+      try {
+        const res = await fetch(apiUrl, { cache: 'no-store' });
+        if (!res.ok) {
+          elStatus.textContent = 'Lien invalide/expire';
+          return;
+        }
+        const data = await res.json();
+        const loc = data.latest_location;
+        const active = data.status === 'active';
+
+        elStatus.textContent = active ? 'Alerte active' : `Statut: ${data.status}`;
+        elStatus.className = active ? 'status' : 'status ok';
+        elExpiresAt.textContent = toLocalDate(data.tracking_expires_at);
+
+        if (!loc || loc.latitude == null || loc.longitude == null) {
+          elCoords.textContent = 'Position en attente...';
+          elUpdatedAt.textContent = 'N/A';
+          return;
+        }
+
+        const lat = loc.latitude;
+        const lng = loc.longitude;
+        elCoords.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        elUpdatedAt.textContent = toLocalDate(loc.timestamp);
+        mapFrame.src = buildMapUrl(lat, lng);
+        googleMapsBtn.href = buildGoogleUrl(lat, lng);
+      } catch {
+        elStatus.textContent = 'Erreur reseau, nouvelle tentative...';
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', refreshTracking);
+    refreshTracking();
+    setInterval(refreshTracking, 15000);
+  </script>
+</body>
+</html>

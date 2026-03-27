@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=bomoko
+      - POSTGRES_USER=bomoko
+      - POSTGRES_PASSWORD=bomoko_pass
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-dev-key
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgres://bomoko:bomoko_pass@db:5432/bomoko
+    depends_on:
+      - db
+      - redis
+    command: python manage.py runserver 0.0.0.0:8000
+
+  worker:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=bomoko.settings.dev
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgres://bomoko:bomoko_pass@db:5432/bomoko
+    depends_on:
+      - db
+      - redis
+    command: celery -A bomoko worker -l info
+
+  beat:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=bomoko.settings.dev
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgres://bomoko:bomoko_pass@db:5432/bomoko
+    depends_on:
+      - db
+      - redis
+    command: celery -A bomoko beat -l info
+
+volumes:
+  postgres_data:

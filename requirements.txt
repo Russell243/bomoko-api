@@ -1,0 +1,52 @@
+# ============================================
+# BOMOKO MOBILE V2 — Backend API Dependencies
+# ============================================
+# Django Core
+django>=5.2,<5.3
+django-environ==0.11.2
+psycopg2-binary==2.9.9
+
+# Django REST Framework
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.3.1
+django-cors-headers==4.4.0
+django-filter==24.3
+drf-spectacular==0.27.2
+
+# WebSockets
+channels[daphne]==4.1.0
+channels-redis==4.2.0
+
+# Celery (tâches asynchrones)
+celery==5.4.0
+django-celery-beat==2.7.0
+django-celery-results==2.5.1
+redis==5.0.8
+
+# Authentication
+django-allauth==65.0.2
+
+# AI Services
+google-genai
+openai>=1.50.0
+anthropic>=0.34.0
+
+# SMS
+twilio==9.3.0
+africastalking>=1.2.3
+
+# Media / Audio
+Pillow==10.4.0
+pydub==0.25.1
+SpeechRecognition==3.10.4
+
+# Security
+bleach==6.1.0
+cryptography>=43.0.0
+
+# Utilities
+gunicorn==22.0.0
+whitenoise==6.7.0
+sentry-sdk==2.14.0
+django-storages[google]==1.14.4
+google-cloud-storage==2.16.0
