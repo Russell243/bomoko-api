@@ -61,10 +61,10 @@ class SystemHealthView(APIView):
         except Exception as exc:
             redis_error = str(exc)
 
-        status_code = status.HTTP_200_OK if db_ok and redis_ok else status.HTTP_503_SERVICE_UNAVAILABLE
+        status_code = status.HTTP_200_OK if db_ok else status.HTTP_503_SERVICE_UNAVAILABLE
         can_view_details = bool(getattr(request.user, 'is_authenticated', False) and request.user.is_staff)
         payload = {
-            'status': 'ok' if db_ok and redis_ok else 'degraded',
+            'status': 'ok' if db_ok else 'degraded',
             'database': {'ok': db_ok},
             'redis': {'ok': redis_ok},
         }
