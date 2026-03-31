@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
-import api, { clearAllTokens } from '../../utils/api';
+import api, { clearAllTokens, getApiOrigin } from '../../utils/api';
 
 type ProfileResponse = {
   username: string;
@@ -162,7 +162,7 @@ export default function AccountScreen() {
           <TouchableOpacity 
             style={styles.adminButton} 
             onPress={() => {
-              const adminUrl = (process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:8000') + '/admin/';
+              const adminUrl = `${getApiOrigin()}/admin/`;
               import('react-native').then(rn => rn.Linking.openURL(adminUrl));
             }}
           >

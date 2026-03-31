@@ -1,13 +1,25 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
 
-const getBaseURL = () => {
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
+const normalizeApiBaseURL = (rawUrl: string) => {
+  const cleaned = rawUrl.trim().replace(/\/+$/, '');
+  if (cleaned.endsWith('/api')) {
+    return cleaned;
   }
+  return `${cleaned}/api`;
+};
 
-  const LOCAL_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8000/api' : 'http://localhost:8000/api';
-  return LOCAL_URL;
+export const getApiBaseURL = () => {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return normalizeApiBaseURL(process.env.EXPO_PUBLIC_API_URL);
+  }
+  return Platform.OS === 'android' ? 'http://10.0.2.2:8000/api' : 'http://localhost:8000/api';
+};
+
+export const getApiOrigin = () => getApiBaseURL().replace(/\/api$/, '');
+
+const getBaseURL = () => {
+  return getApiBaseURL();
 };
 
 const api = axios.create({
