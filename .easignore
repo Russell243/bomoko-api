@@ -1,0 +1,21 @@
+# Ignore everything by default
+*
+# But include these patterns
+!/app/**
+!/assets/**
+!/components/**
+!/constants/**
+!/hooks/**
+!/utils/**
+!/app.json
+!/eas.json
+!/package.json
+!/package-lock.json
+!/babel.config.js
+!/metro.config.js
+!/tsconfig.json
+!/.env-example
+!/README.md
+
+# Ignore specific large files if needed
+/assets/images/Logo de BOMOKO avec slogan.png
